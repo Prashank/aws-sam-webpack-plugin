@@ -60,29 +60,36 @@ class AwsSamPlugin {
 
   // Returns the name of the SAM template file or null if it's not found
   private findTemplateName(prefix: string) {
+    if (fs.statSync(prefix).isFile()) {
+      return prefix;
+    }
     for (const f of AwsSamPlugin.defaultTemplates) {
       const template = `${prefix}/${f}`;
       if (fs.existsSync(template)) {
         return template;
       }
     }
-
     return null;
   }
 
   // Returns a webpack entry object based on the SAM template
   public entryFor(
-    projectKey: string,
-    projectPath: string,
-    projectTemplateName: string,
-    projectTemplate: string,
-    outFile: string
+    projectKey: string, // example: "default"
+    projectPath: string, // relative from source project path
+    projectTemplateName: string, // base name of template file name
+    projectTemplateContent: string, // content of SAM template
+    outFile: string // example app.js
   ): IEntryForResult {
     const entryPoints: IEntryPointMap = {};
     const launchConfigs: any[] = [];
     const samConfigs: SamConfig[] = [];
 
-    const templateYml = yaml.load(projectTemplate, { filename: projectTemplateName, schema }) as any;
+    const buildRoot = `${projectPath ? projectPath + "/" : ""}.aws-sam/build`;
+
+    const templateYml = yaml.load(projectTemplateContent, {
+      filename: projectTemplateName,
+      schema,
+    }) as any;
 
     const defaultRuntime = templateYml.Globals?.Function?.Runtime ?? null;
     const defaultHandler = templateYml.Globals?.Function?.Handler ?? null;
@@ -91,8 +98,6 @@ class AwsSamPlugin {
     // Loop through all of the resources
     for (const resourceKey in templateYml.Resources) {
       const resource = templateYml.Resources[resourceKey];
-
-      const buildRoot = projectPath === "" ? `.aws-sam/build` : `${projectPath}/.aws-sam/build`;
 
       // Correct paths for files that can be uploaded using "aws couldformation package"
       if (resource.Type === "AWS::ApiGateway::RestApi" && typeof resource.Properties.BodyS3Location === "string") {
@@ -294,42 +299,36 @@ class AwsSamPlugin {
     };
     this.samConfigs = [];
 
-    // The name of the out file
-    const outFile = this.options.outFile;
-
     // Loop through each of the "projects" from the options
     for (const projectKey in this.options.projects) {
       // The value will be the name of a folder or a template file
       const projectFolderOrTemplateName = this.options.projects[projectKey];
 
       // If the projectFolderOrTemplateName isn't a file then we should look for common template file names
-      const projectTemplateName = fs.statSync(projectFolderOrTemplateName).isFile()
-        ? projectFolderOrTemplateName
-        : this.findTemplateName(projectFolderOrTemplateName);
+      const projectTemplateFileName = this.findTemplateName(projectFolderOrTemplateName);
 
       // If we still cannot find a project template name then throw an error because something is wrong
-      if (projectTemplateName === null) {
+      if (projectTemplateFileName === null) {
         throw new Error(
           `Could not find ${AwsSamPlugin.defaultTemplates.join(" or ")} in ${projectFolderOrTemplateName}`
         );
       }
 
+      const projectTemplateContent = fs.readFileSync(projectTemplateFileName).toString();
+
       // Retrieve the entry points, VS Code debugger launch configs and SAM config for this entry
       const { entryPoints, launchConfigs, samConfigs } = this.entryFor(
-        projectKey,
-        path.relative(".", path.dirname(projectTemplateName)),
-        path.basename(projectTemplateName),
-        fs.readFileSync(projectTemplateName).toString(),
-        outFile
+        projectKey, // projectKey
+        path.relative(".", path.dirname(projectTemplateFileName)), // projectPath
+        path.basename(projectTemplateFileName), // projectTemplateName
+        projectTemplateContent, // projecTemplate
+        this.options.outFile // outFile
       );
 
       // Addd them to the entry pointsm launch configs and SAM confis we've already discovered.
-      allEntryPoints = {
-        ...allEntryPoints,
-        ...entryPoints,
-      };
-      this.launchConfig.configurations = [...this.launchConfig.configurations, ...launchConfigs];
-      this.samConfigs = [...this.samConfigs, ...samConfigs];
+      Object.assign(allEntryPoints, entryPoints);
+      this.launchConfig.configurations.push(...launchConfigs);
+      this.samConfigs.push(...samConfigs);
     }
 
     // Once we're done return the entry points
