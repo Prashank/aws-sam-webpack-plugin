@@ -380,6 +380,7 @@ test.each([
         tap: (n: string, f: (_compilation: any) => void) => {
           afterEmit = f;
         },
+        tapPromise: async (n: string, f: (_compilation: any) => Promise<void>) => {},
       },
     },
   });

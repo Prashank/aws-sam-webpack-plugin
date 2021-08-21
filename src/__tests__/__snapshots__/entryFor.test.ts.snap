@@ -32,7 +32,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "MyLambda": Object {
@@ -46,7 +47,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -84,7 +84,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -103,7 +104,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -141,7 +141,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -160,7 +161,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -198,7 +198,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "MyLambda": Object {
@@ -212,7 +213,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -250,7 +250,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -269,7 +270,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -307,7 +307,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -326,7 +327,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -364,7 +364,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "MyLambda": Object {
@@ -378,7 +379,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -416,7 +416,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "MyLambda": Object {
@@ -430,7 +431,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -468,7 +468,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "MyLambda": Object {
@@ -482,7 +483,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -520,7 +520,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -539,7 +540,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -577,7 +577,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -595,7 +596,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -633,7 +633,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -651,7 +652,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -689,7 +689,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -707,7 +708,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -745,7 +745,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/app.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Resources": Object {
           "FakeResource": Object {
@@ -762,7 +763,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -800,7 +800,8 @@ Object {
       "entryPointName": "MyLambda",
       "outFile": "./.aws-sam/build/MyLambda/index.js",
       "projectKey": "default",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -818,7 +819,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }
@@ -856,7 +856,8 @@ Object {
       "entryPointName": "xxx#MyLambda",
       "outFile": "./xxx/.aws-sam/build/MyLambda/app.js",
       "projectKey": "xxx",
-      "samConfig": Object {
+      "templateName": "template.yaml",
+      "templateYml": Object {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Globals": Object {
           "Function": Object {
@@ -874,7 +875,6 @@ Object {
         },
         "Transform": "AWS::Serverless-2016-10-31",
       },
-      "templateName": "template.yaml",
     },
   ],
 }

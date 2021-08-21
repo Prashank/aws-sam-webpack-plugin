@@ -23,7 +23,7 @@ interface SamConfig {
   entryPointName: string;
   outFile: string;
   projectKey: string;
-  samConfig: any;
+  templateYml: any; // YAML content of the SAM template
   templateName: string;
 }
 
@@ -82,15 +82,15 @@ class AwsSamPlugin {
     const launchConfigs: any[] = [];
     const samConfigs: SamConfig[] = [];
 
-    const samConfig = yaml.load(projectTemplate, { filename: projectTemplateName, schema }) as any;
+    const templateYml = yaml.load(projectTemplate, { filename: projectTemplateName, schema }) as any;
 
-    const defaultRuntime = samConfig.Globals?.Function?.Runtime ?? null;
-    const defaultHandler = samConfig.Globals?.Function?.Handler ?? null;
-    const defaultCodeUri = samConfig.Globals?.Function?.CodeUri ?? null;
+    const defaultRuntime = templateYml.Globals?.Function?.Runtime ?? null;
+    const defaultHandler = templateYml.Globals?.Function?.Handler ?? null;
+    const defaultCodeUri = templateYml.Globals?.Function?.CodeUri ?? null;
 
     // Loop through all of the resources
-    for (const resourceKey in samConfig.Resources) {
-      const resource = samConfig.Resources[resourceKey];
+    for (const resourceKey in templateYml.Resources) {
+      const resource = templateYml.Resources[resourceKey];
 
       const buildRoot = projectPath === "" ? `.aws-sam/build` : `${projectPath}/.aws-sam/build`;
 
@@ -240,7 +240,7 @@ class AwsSamPlugin {
           entryPointName,
           outFile: `./${buildRoot}/${resourceKey}/${outFile}.js`,
           projectKey,
-          samConfig,
+          templateYml,
           templateName: projectTemplateName,
         });
       }
@@ -407,8 +407,8 @@ class AwsSamPlugin {
       throw new Error("It looks like AwsSamPlugin.entry() was not called");
     }
     const yamlUnique = this.samConfigs.reduce((a, e) => {
-      const { buildRoot, samConfig } = e;
-      a[buildRoot] = samConfig;
+      const { buildRoot, templateYml } = e;
+      a[buildRoot] = templateYml;
       return a;
     }, {} as Record<string, any>);
     for (const buildRoot in yamlUnique) {
