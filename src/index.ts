@@ -18,7 +18,7 @@ interface IEntryPointMap {
   [pname: string]: string;
 }
 
-interface SamConfig {
+interface SamEntry {
   buildRoot: string;
   entryPointName: string;
   outFile: string;
@@ -30,7 +30,7 @@ interface SamConfig {
 interface IEntryForResult {
   entryPoints: IEntryPointMap;
   launchConfigs: any[];
-  samConfigs: SamConfig[];
+  samConfigs: SamEntry[];
 }
 
 interface ILayerConfig {
@@ -45,7 +45,7 @@ class AwsSamPlugin {
   private static defaultTemplates = ["template.yaml", "template.yml"];
   private launchConfig: any;
   private options: AwsSamPluginOptions;
-  private samConfigs: SamConfig[];
+  private samEntries: SamEntry[];
   private layersConfigs: ILayerConfig[] = [];
 
   constructor(options?: Partial<AwsSamPluginOptions>) {
@@ -55,7 +55,7 @@ class AwsSamPlugin {
       vscodeDebug: true,
       ...options,
     };
-    this.samConfigs = [];
+    this.samEntries = [];
   }
 
   // Returns the name of the SAM template file or null if it's not found
@@ -82,7 +82,7 @@ class AwsSamPlugin {
   ): IEntryForResult {
     const entryPoints: IEntryPointMap = {};
     const launchConfigs: any[] = [];
-    const samConfigs: SamConfig[] = [];
+    const samConfigs: SamEntry[] = [];
 
     const buildRoot = `${projectPath ? projectPath + "/" : ""}.aws-sam/build`;
 
@@ -297,7 +297,7 @@ class AwsSamPlugin {
       version: "0.2.0",
       configurations: [],
     };
-    this.samConfigs = [];
+    this.samEntries = [];
 
     // Loop through each of the "projects" from the options
     for (const projectKey in this.options.projects) {
@@ -328,7 +328,7 @@ class AwsSamPlugin {
       // Addd them to the entry pointsm launch configs and SAM confis we've already discovered.
       Object.assign(allEntryPoints, entryPoints);
       this.launchConfig.configurations.push(...launchConfigs);
-      this.samConfigs.push(...samConfigs);
+      this.samEntries.push(...samConfigs);
     }
 
     // Once we're done return the entry points
@@ -336,7 +336,7 @@ class AwsSamPlugin {
   }
 
   public filename(chunkData: any) {
-    const samConfig = this.samConfigs.find((c) => c.entryPointName === chunkData.chunk.name);
+    const samConfig = this.samEntries.find((c) => c.entryPointName === chunkData.chunk.name);
     if (!samConfig) {
       throw new Error(`Unable to find filename for ${chunkData.chunk.name}`);
     }
@@ -358,7 +358,7 @@ class AwsSamPlugin {
   }
 
   private async buildLayers(): Promise<void> {
-    if (!(this.samConfigs && this.launchConfig)) {
+    if (!(this.samEntries && this.launchConfig)) {
       throw new Error("It looks like AwsSamPlugin.entry() was not called");
     }
     for (const layerConfig of this.layersConfigs) {
@@ -402,10 +402,10 @@ class AwsSamPlugin {
   }
 
   private writeTemplateFiles() {
-    if (!(this.samConfigs && this.launchConfig)) {
+    if (!(this.samEntries && this.launchConfig)) {
       throw new Error("It looks like AwsSamPlugin.entry() was not called");
     }
-    const yamlUnique = this.samConfigs.reduce((a, e) => {
+    const yamlUnique = this.samEntries.reduce((a, e) => {
       const { buildRoot, templateYml } = e;
       a[buildRoot] = templateYml;
       return a;
@@ -417,7 +417,7 @@ class AwsSamPlugin {
   }
 
   private writeVscodeLaunch(): void {
-    if (!(this.samConfigs && this.launchConfig)) {
+    if (!(this.samEntries && this.launchConfig)) {
       throw new Error("It looks like AwsSamPlugin.entry() was not called");
     }
     if (this.options.vscodeDebug !== true) {
