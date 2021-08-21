@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { exec } from "child_process";
 import { schema } from "yaml-cfn";
 import yaml from "js-yaml";
 
@@ -32,11 +33,20 @@ interface IEntryForResult {
   samConfigs: SamConfig[];
 }
 
+interface ILayerConfig {
+  templateName: string;
+  resourceKey: string;
+  buildRoot: string;
+  contentDir: string;
+  buildMethod?: string;
+}
+
 class AwsSamPlugin {
   private static defaultTemplates = ["template.yaml", "template.yml"];
   private launchConfig: any;
   private options: AwsSamPluginOptions;
   private samConfigs: SamConfig[];
+  private layersConfigs: ILayerConfig[] = [];
 
   constructor(options?: Partial<AwsSamPluginOptions>) {
     this.options = {
@@ -252,6 +262,42 @@ class AwsSamPlugin {
           templateName: projectTemplateName,
         });
       }
+
+      if (resource.Type === "AWS::Serverless::LayerVersion") {
+        const properties = resource.Properties;
+        if (!properties || typeof properties !== "object") {
+          throw new Error(`${resourceKey} is missing Properties`);
+        }
+
+        // Check we have a CodeUri
+        const contentUri = properties.ContentUri ?? defaultCodeUri;
+        if (!contentUri) {
+          throw new Error(`${resourceKey} is missing a CodeUri`);
+        }
+
+        const basePathPrefix = projectPath === "" ? "." : `./${projectPath}`;
+        const contentDir = `${basePathPrefix}/${contentUri}`;
+
+        const buildMethod = resource.Metadata?.BuildMethod;
+        if (buildMethod === "makefile") {
+          if (
+            !this.layersConfigs.find(
+              (e) =>
+                e.templateName === projectTemplateName && e.resourceKey === resourceKey && e.buildRoot === buildRoot
+            )
+          ) {
+            this.layersConfigs.push({
+              templateName: projectTemplateName,
+              resourceKey,
+              buildRoot,
+              contentDir,
+              buildMethod,
+            });
+          }
+        } else {
+          throw new Error(`Unsupported layer BuildMethod '${buildMethod}'`);
+        }
+      }
     }
 
     return { entryPoints, launchConfigs, samConfigs };
@@ -317,53 +363,102 @@ class AwsSamPlugin {
   }
 
   public apply(compiler: any) {
-    compiler.hooks.afterEmit.tap("SamPlugin", (_compilation: any) => {
-      if (this.samConfigs && this.launchConfig) {
-        for (const samConfig of this.samConfigs) {
-          fs.writeFileSync(
-            `${samConfig.buildRoot}/template.yaml`,
-            yaml.dump(samConfig.samConfig, { indent: 2, quotingType: '"', schema })
-          );
+    compiler.hooks.afterEmit?.tapPromise(
+      "SamPlugin",
+      async (_compilation: any /* webpack.Compilation */): Promise<void> => {
+        if (!(this.samConfigs && this.launchConfig)) {
+          throw new Error("It looks like AwsSamPlugin.entry() was not called");
         }
-        if (this.options.vscodeDebug !== false) {
-          if (!fs.existsSync(".vscode")) {
-            fs.mkdirSync(".vscode");
-          }
 
-          const launchPath = ".vscode/launch.json";
-
-          const launchContent = JSON.stringify(this.launchConfig, null, 2)
-            .replace(/^(.*"configurations": \[\s*)$/m, "$1\n    // BEGIN AwsSamPlugin")
-            .replace(/(\n  \s*\][\r\n]+\})$/m, "\n    // END AwsSamPlugin$1");
-          const regexBlock = /\s+\/\/ BEGIN AwsSamPlugin(\r|\n|.)+\/\/ END AwsSamPlugin/m;
-
-          // get new "configurations" content
-          const matches = launchContent.match(regexBlock);
-          if (!matches) {
-            throw new Error(launchPath + " new content does not match");
-          }
-          const launchConfigurations = matches[0];
-
-          if (fs.existsSync(launchPath)) {
-            const launchContentOld = fs.readFileSync(launchPath).toString("utf8");
-            if (launchContentOld.match(regexBlock)) {
-              // partial rewrite contents
-              const newContent = launchContentOld.replace(regexBlock, () => launchConfigurations);
-              fs.writeFileSync(launchPath, newContent);
-            } else {
-              // add configurations
-              const newContent = launchContentOld.replace(
-                /(\n  \]\n\})$/m,
-                (p0, p1) => `,${launchConfigurations}${p1}`
-              );
-              fs.writeFileSync(launchPath, newContent);
+        for (const layerConfig of this.layersConfigs) {
+          const { templateName, resourceKey, buildRoot, contentDir, buildMethod } = layerConfig;
+          if (buildMethod === "makefile") {
+            console.log("Start building layer %s#%s ... ", templateName, resourceKey);
+            const artifactsDir = `${buildRoot}/${resourceKey}`;
+            try {
+              fs.mkdirSync(buildRoot);
+            } catch (err) {
+              if (!(err?.code === "EEXIST")) throw err;
+            }
+            try {
+              fs.mkdirSync(artifactsDir);
+            } catch (err) {
+              if (!(err?.code === "EEXIST")) throw err;
+            }
+            const cmdLine = [
+              //
+              `make`,
+              `-C "${contentDir}"`,
+              `ARTIFACTS_DIR="${path.resolve(artifactsDir)}"`,
+              `build-${resourceKey}`,
+            ].join(" ");
+            // console.info("MAKE %s cmdLine: %s", resourceKey, cmdLine);
+            try {
+              await new Promise((res, rej) => {
+                exec(cmdLine, (e) => (e?.code ? rej(e) : res(e)));
+              });
+            } catch (err) {
+              if (err.cmd) {
+                console.error(err.stdout);
+                console.error(err.stderr);
+              }
+              throw err;
             }
           } else {
-            fs.writeFileSync(launchPath, launchContent);
+            throw new Error(`Unsupported layer BuildMethod '${buildMethod}'`);
           }
         }
-      } else {
+      }
+    );
+    compiler.hooks.afterEmit.tap("SamPlugin", (_compilation: any) => {
+      if (!(this.samConfigs && this.launchConfig)) {
         throw new Error("It looks like AwsSamPlugin.entry() was not called");
+      }
+      const yamlUnique = this.samConfigs.reduce((a, e) => {
+        const { buildRoot, samConfig } = e;
+        a[buildRoot] = samConfig;
+        return a;
+      }, {} as Record<string, any>);
+      for (const buildRoot in yamlUnique) {
+        const samConfig = yamlUnique[buildRoot];
+        fs.writeFileSync(`${buildRoot}/template.yaml`, yaml.dump(samConfig, { indent: 2, quotingType: '"', schema }));
+      }
+
+      if (this.options.vscodeDebug !== false) {
+        if (!fs.existsSync(".vscode")) {
+          fs.mkdirSync(".vscode");
+        }
+        const launchPath = ".vscode/launch.json";
+
+        const launchContent = JSON.stringify(this.launchConfig, null, 2)
+          .replace(/^(.*"configurations": \[\s*)$/m, "$1\n    // BEGIN AwsSamPlugin")
+          .replace(/(\n  \s*\][\r\n]+\})$/m, "\n    // END AwsSamPlugin$1");
+        const regexBlock = /\s+\/\/ BEGIN AwsSamPlugin(\r|\n|.)+\/\/ END AwsSamPlugin/m;
+
+        // get new "configurations" content
+        const matches = launchContent.match(regexBlock);
+        if (!matches) {
+          throw new Error(launchPath + " new content does not match");
+        }
+        const launchConfigurations = matches[0];
+
+        if (fs.existsSync(launchPath)) {
+          const launchContentOld = fs.readFileSync(launchPath).toString("utf8");
+          if (launchContentOld.match(regexBlock)) {
+            // partial rewrite contents
+            const newContent = launchContentOld.replace(regexBlock, () => launchConfigurations);
+            fs.writeFileSync(launchPath, newContent);
+          } else {
+            // add configurations
+            const newContent = launchContentOld.replace(
+              /(\n  \]\n\})$/m,
+              (p0, p1) => `,${launchConfigurations}${p1}`
+            );
+            fs.writeFileSync(launchPath, newContent);
+          }
+        } else {
+          fs.writeFileSync(launchPath, launchContent);
+        }
       }
     });
   }
