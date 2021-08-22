@@ -49,6 +49,23 @@ function rewriteAssetRelativePath(Properties: any, key: string, buildRoot: strin
     Properties[key] = path.relative(buildRoot, Properties[key]);
   }
 }
+
+function buildVscodeLaunchObject(projectKey: string, resourceKey: string, buildRoot: string) {
+  return {
+    name: projectKey === "default" ? resourceKey : `${projectKey}:${resourceKey}`,
+    type: "node",
+    request: "attach",
+    address: "localhost",
+    port: 5858,
+    localRoot: `\${workspaceFolder}/${buildRoot}/${resourceKey}`,
+    remoteRoot: "/var/task",
+    protocol: "inspector",
+    stopOnEntry: false,
+    outFiles: [`\${workspaceFolder}/${buildRoot}/${resourceKey}/**/*.js`],
+    sourceMaps: true,
+    skipFiles: ["/var/runtime/**/*.js", "<node_internals>/**/*.js"],
+  };
+}
 class AwsSamPlugin {
   private static defaultTemplates = ["template.yaml", "template.yml"];
   private launchConfig: any;
@@ -182,20 +199,7 @@ class AwsSamPlugin {
         const fileBase = `${basePath}/${handlerComponents[0]}`;
 
         // Generate the launch config for the VS Code debugger
-        launchConfigs.push({
-          name: projectKey === "default" ? resourceKey : `${projectKey}:${resourceKey}`,
-          type: "node",
-          request: "attach",
-          address: "localhost",
-          port: 5858,
-          localRoot: `\${workspaceFolder}/${buildRoot}/${resourceKey}`,
-          remoteRoot: "/var/task",
-          protocol: "inspector",
-          stopOnEntry: false,
-          outFiles: [`\${workspaceFolder}/${buildRoot}/${resourceKey}/**/*.js`],
-          sourceMaps: true,
-          skipFiles: ["/var/runtime/**/*.js", "<node_internals>/**/*.js"],
-        });
+        launchConfigs.push(buildVscodeLaunchObject(projectKey, resourceKey, buildRoot));
 
         // Add the entry point for webpack
         const entryPointName = projectKey === "default" ? resourceKey : `${projectKey}#${resourceKey}`;
