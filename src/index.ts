@@ -41,6 +41,14 @@ interface ILayerConfig {
   buildMethod?: string;
 }
 
+function rewriteAssetRelativePath(Properties: any, key: string, buildRoot: string) {
+  if (typeof Properties !== "object") return;
+  if (!(key in Properties)) return;
+  if (typeof Properties[key] === "string" && Properties[key].startsWith("s3://") === false) {
+    // FIXME: add correction path relative of template path. And add linked files to assets
+    Properties[key] = path.relative(buildRoot, Properties[key]);
+  }
+}
 class AwsSamPlugin {
   private static defaultTemplates = ["template.yaml", "template.yml"];
   private launchConfig: any;
@@ -98,90 +106,44 @@ class AwsSamPlugin {
     // Loop through all of the resources
     for (const resourceKey in templateYml.Resources) {
       const resource = templateYml.Resources[resourceKey];
+      const { Type, Properties: properties } = resource;
 
       // Correct paths for files that can be uploaded using "aws couldformation package"
-      if (resource.Type === "AWS::ApiGateway::RestApi" && typeof resource.Properties.BodyS3Location === "string") {
-        resource.Properties.BodyS3Location = path.relative(buildRoot, resource.Properties.BodyS3Location);
+      if (Type === "AWS::ApiGateway::RestApi") {
+        rewriteAssetRelativePath(properties, "BodyS3Location", buildRoot);
       }
-      if (resource.Type === "AWS::Lambda::Function" && typeof resource.Properties.Code === "string") {
-        resource.Properties.Code = path.relative(buildRoot, resource.Properties.Code);
+      if (Type === "AWS::Lambda::Function" && typeof properties.Code === "string") {
+        rewriteAssetRelativePath(properties, "Code", buildRoot);
       }
-      if (
-        resource.Type === "AWS::AppSync::GraphQLSchema" &&
-        typeof resource.Properties.DefinitionS3Location === "string" &&
-        resource.Properties.DefinitionS3Location.startsWith("s3://") === false
-      ) {
-        resource.Properties.DefinitionS3Location = path.relative(buildRoot, resource.Properties.DefinitionS3Location);
+      if (Type === "AWS::AppSync::GraphQLSchema") {
+        rewriteAssetRelativePath(properties, "DefinitionS3Location", buildRoot);
       }
-      if (
-        resource.Type === "AWS::AppSync::Resolver" &&
-        typeof resource.Properties.RequestMappingTemplateS3Location === "string" &&
-        resource.Properties.RequestMappingTemplateS3Location.startsWith("s3://") === false
-      ) {
-        resource.Properties.RequestMappingTemplateS3Location = path.relative(
-          buildRoot,
-          resource.Properties.RequestMappingTemplateS3Location
-        );
+      if (Type === "AWS::AppSync::Resolver") {
+        rewriteAssetRelativePath(properties, "RequestMappingTemplateS3Location", buildRoot);
       }
-      if (
-        resource.Type === "AWS::AppSync::Resolver" &&
-        typeof resource.Properties.ResponseMappingTemplateS3Location === "string" &&
-        resource.Properties.ResponseMappingTemplateS3Location.startsWith("s3://") === false
-      ) {
-        resource.Properties.ResponseMappingTemplateS3Location = path.relative(
-          buildRoot,
-          resource.Properties.ResponseMappingTemplateS3Location
-        );
+      if (Type === "AWS::AppSync::Resolver") {
+        rewriteAssetRelativePath(properties, "ResponseMappingTemplateS3Location", buildRoot);
       }
-      if (
-        resource.Type === "AWS::Serverless::Api" &&
-        typeof resource.Properties.DefinitionUri === "string" &&
-        resource.Properties.DefinitionUri.startsWith("s3://") === false
-      ) {
-        resource.Properties.DefinitionUri = path.relative(buildRoot, resource.Properties.DefinitionUri);
+      if (Type === "AWS::Serverless::Api") {
+        rewriteAssetRelativePath(properties, "DefinitionUri", buildRoot);
       }
-      if (
-        resource.Type === "AWS::Include" &&
-        typeof resource.Properties.Location === "string" &&
-        resource.Properties.Location.startsWith("s3://") === false
-      ) {
-        resource.Properties.Location = path.relative(buildRoot, resource.Properties.Location);
+      if (Type === "AWS::Include") {
+        rewriteAssetRelativePath(properties, "Location", buildRoot);
       }
-      if (
-        resource.Type === "AWS::ElasticBeanstalk::ApplicationVersion" &&
-        typeof resource.Properties.SourceBundle === "string" &&
-        resource.Properties.SourceBundle.startsWith("s3://") === false
-      ) {
-        resource.Properties.SourceBundle = path.relative(buildRoot, resource.Properties.SourceBundle);
+      if (Type === "AWS::ElasticBeanstalk::ApplicationVersion") {
+        rewriteAssetRelativePath(properties, "SourceBundle", buildRoot);
       }
-      if (
-        resource.Type === "AWS::CloudFormation::Stack" &&
-        typeof resource.Properties.TemplateURL === "string" &&
-        resource.Properties.TemplateURL.startsWith("s3://") === false
-      ) {
-        resource.Properties.TemplateURL = path.relative(buildRoot, resource.Properties.TemplateURL);
+      if (Type === "AWS::CloudFormation::Stack") {
+        rewriteAssetRelativePath(properties, "TemplateURL", buildRoot);
       }
-      if (
-        resource.Type === "AWS::Glue::Job" &&
-        resource.Properties.Command &&
-        typeof resource.Properties.Command.ScriptLocation === "string" &&
-        resource.Properties.Command.ScriptLocation.startsWith("s3://") === false
-      ) {
-        resource.Properties.Command.ScriptLocation = path.relative(
-          buildRoot,
-          resource.Properties.Command.ScriptLocation
-        );
+      if (Type === "AWS::Glue::Job" && properties.Command) {
+        rewriteAssetRelativePath(properties.Command, "ScriptLocation", buildRoot);
       }
-      if (
-        resource.Type === "AWS::StepFunctions::StateMachine" &&
-        typeof resource.Properties.DefinitionS3Location === "string" &&
-        resource.Properties.DefinitionS3Location.startsWith("s3://") === false
-      ) {
-        resource.Properties.DefinitionS3Location = path.relative(buildRoot, resource.Properties.DefinitionS3Location);
+      if (Type === "AWS::StepFunctions::StateMachine") {
+        rewriteAssetRelativePath(properties, "DefinitionS3Location", buildRoot);
       }
       // Find all of the functions
       if (resource.Type === "AWS::Serverless::Function") {
-        const properties = resource.Properties;
         if (!properties) {
           throw new Error(`${resourceKey} is missing Properties`);
         }
