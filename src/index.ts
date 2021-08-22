@@ -263,14 +263,14 @@ class AwsSamPlugin {
           throw new Error(`${resourceKey} is missing Properties`);
         }
 
-        // Check we have a CodeUri
-        const contentUri = properties.ContentUri ?? defaultCodeUri;
+        // Check we have a ContentUri
+        const contentUri = properties.ContentUri;
         if (!contentUri) {
-          throw new Error(`${resourceKey} is missing a CodeUri`);
+          throw new Error(`${resourceKey} is missing a ContentUri`);
         }
 
-        const basePathPrefix = ["", "."].includes(projectPath) ? "" : `${projectPath}/`;
-        const contentDir = `${basePathPrefix}/${contentUri}`;
+        const basePathPrefix = ["", "."].includes(projectPath) ? "." : projectPath;
+        const resourcePath = `${basePathPrefix}/${contentUri}`.replace(/^(\.\/)+/, "./");
 
         const buildMethod = resource.Metadata?.BuildMethod;
         if (buildMethod === "makefile") {
@@ -279,7 +279,7 @@ class AwsSamPlugin {
               projectKey,
               resourceType: "layer",
               resourceKey,
-              resourcePath: `${basePathPrefix}/${contentDir}`,
+              resourcePath,
               buildRoot,
               buildMethod,
               entryPointName: "", // Layers does not shows to Webpack
