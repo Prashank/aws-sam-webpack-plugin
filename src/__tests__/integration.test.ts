@@ -5,7 +5,6 @@ import child_process from "child_process";
 
 jest.mock("child_process");
 jest.mock("fs");
-jest.mock("path");
 
 const samTemplate = `
 AWSTemplateFormatVersion: "2010-09-09"
@@ -66,15 +65,6 @@ test("Happy path with default constructor works", () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
-
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -105,15 +95,6 @@ test("Happy path with empty options in the constructor works", () => {
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
@@ -150,15 +131,6 @@ test("Happy path with empty options in the constructor works and an existing .vs
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
-
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -193,15 +165,6 @@ test("Happy path with VS Code debugging disabled", () => {
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
@@ -356,14 +319,6 @@ test.each([
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate, ".vscode/launch.json": srcData });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
@@ -398,15 +353,6 @@ test("Happy path with multiple projects works", () => {
   // @ts-ignore
   fs.__setMockFiles({ "project-a/template.yaml": samTemplate, "project-b/template.yaml": samTemplate });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "project-a/template.yaml": "template.yaml", "project-b/template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "project-a/template.yaml": "project-a", "project-b/template.yaml": "project-b" });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#project-a": "project-a", ".#project-b": "project-b" });
-
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -437,18 +383,6 @@ test("Happy path with multiple projects and different template names works", () 
   fs.__setMockDirs(["project-a", "project-b"]);
   // @ts-ignore
   fs.__setMockFiles({ "project-a/template-a.yaml": samTemplate, "project-b/template-b.yaml": samTemplate });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({
-    "project-a/template-a.yaml": "template-a.yaml",
-    "project-b/template-b.yaml": "template-b.yaml",
-  });
-  // @ts-ignore
-  path.__setMockDirnames({ "project-a/template-a.yaml": "project-a", "project-b/template-b.yaml": "project-b" });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#project-a": "project-a", ".#project-b": "project-b" });
 
   const entryPoints = plugin.entry();
 
@@ -505,15 +439,6 @@ test("Happy path for filename() when the Lambda is found", () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
-
   const entryPoints = plugin.entry();
 
   expect(plugin.filename({ chunk: { name: "MyLambda" } })).toEqual("./.aws-sam/build/MyLambda/app.js");
@@ -528,15 +453,6 @@ test("Fails when filename() is passed an invalid lambda name", () => {
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
@@ -556,14 +472,6 @@ test("Fails when there is no template.yaml or template.yml and you provided a di
   // // @ts-ignore
   // fs.__setMockFiles({ "./template.yaml": samTemplate });
 
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  // path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // // @ts-ignore
-  // path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   expect(() => plugin.entry()).toThrowError("Could not find template.yaml or template.yml in .");
 });
@@ -577,15 +485,6 @@ test("Happy path with an output file specified", () => {
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
@@ -617,15 +516,6 @@ test("Happy exec make template with layers", async () => {
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplateWithLayer });
-
-  // @ts-ignore
-  path.__clearMocks();
-  // @ts-ignore
-  path.__setMockBasenames({ "./template.yaml": "template.yaml" });
-  // @ts-ignore
-  path.__setMockDirnames({ "./template.yaml": "." });
-  // @ts-ignore
-  path.__setMockRelatives({ ".#.": "" });
 
   const entryPoints = plugin.entry();
 
