@@ -1,8 +1,22 @@
+import * as fs from "fs";
 import SamPlugin from "../index";
+
+jest.mock("fs");
+
+function fsPrepCommon(template: string, templateName = "./template.yaml") {
+  // @ts-ignore
+  fs.__clearMocks();
+  // @ts-ignore
+  fs.__setMockDirs(["."]);
+  const files: Record<string, string> = {};
+  files[templateName] = template;
+
+  // @ts-ignore
+  fs.__setMockFiles(files);
+}
 
 describe("Function Runtime", () => {
   test("can be set globally to nodejs10.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -16,12 +30,14 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set globally to nodejs12.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -35,12 +51,14 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set globally to nodejs14.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -54,12 +72,14 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set at the function to nodejs10.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -71,12 +91,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs10.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set at the function to nodejs12.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -88,12 +110,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs12.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set at the function to nodejs14.x", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -105,12 +129,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("must be set globally or at the function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -121,13 +147,15 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
       "MyLambda has an unsupport Runtime. Must be nodejs10.x, nodejs12.x or nodejs14.x"
     );
   });
 
   test("must have a valid value if set globally", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -141,13 +169,15 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
       "MyLambda has an unsupport Runtime. Must be nodejs10.x, nodejs12.x or nodejs14.x"
     );
   });
 
   test("must have a valid value if set at the function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -159,13 +189,15 @@ Resources:
       Handler: app.handler
       Runtime: nodejs8.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
       "MyLambda has an unsupport Runtime. Must be nodejs10.x, nodejs12.x or nodejs14.x"
     );
   });
 
   test("can be set global and at function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -180,6 +212,9 @@ Resources:
       Handler: app.handler
       Runtime: nodejs12.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
@@ -187,7 +222,6 @@ Resources:
 
 describe("Function Handler", () => {
   test("can be set globally", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -201,12 +235,14 @@ Resources:
       CodeUri: src/my-lambda
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set at the function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -218,12 +254,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set global and at function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -238,12 +276,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("must be set", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -254,6 +294,9 @@ Resources:
       CodeUri: src/my-lambda
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
       "MyLambda is missing a Handler"
     );
@@ -262,7 +305,6 @@ Resources:
 
 describe("Function CodeUri", () => {
   test("can be set globally", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -276,12 +318,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set at the function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -293,12 +337,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("can be set global or at the function", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -313,12 +359,14 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("must be set", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -329,6 +377,9 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
       "MyLambda is missing a CodeUri"
     );
@@ -336,7 +387,6 @@ Resources:
 });
 
 test("Fails if Properties is missing", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -344,13 +394,15 @@ Resources:
   MyLambda:
     Type: AWS::Serverless::Function
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin();
+
   expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
     "MyLambda is missing Properties"
   );
 });
 
 test("Fails if Hanlde doesn't include a '.'", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -361,13 +413,15 @@ Resources:
       Handler: apphandler
       Runtime: nodejs14.x
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin();
+
   expect(() => plugin.entryFor("default", "", "template.yaml", template, "app")).toThrowError(
     'MyLambda Handler must contain exactly one "."'
   );
 });
 
 test("Allows Inline code with warning", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -379,6 +433,9 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin();
+
   const originalLog = console.log;
   console.log = jest.fn();
   const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
@@ -391,7 +448,6 @@ Resources:
 
 describe("Launch config name", () => {
   test("is not prefixed when the projectKey is 'default'", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -405,12 +461,14 @@ describe("Launch config name", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.launchConfigs[0].name).toEqual("MyLambda");
   });
 
   test("is prefixed when the projectKey isn't 'default'", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -424,6 +482,9 @@ describe("Launch config name", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin({ projects: { xxx: "." } });
+
     const entries = plugin.entryFor("xxx", "", "template.yaml", template, "app");
     expect(entries.launchConfigs[0].name).toEqual("xxx:MyLambda");
   });
@@ -431,7 +492,6 @@ describe("Launch config name", () => {
 
 describe("SAM config entryPointName:", () => {
   test("is not prefixed when the projectKey isn 'default'", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -445,12 +505,14 @@ describe("SAM config entryPointName:", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0].entryPointName).toEqual("MyLambda");
   });
 
   test("is prefixed when the projectKey isn't 'default'", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -464,6 +526,9 @@ describe("SAM config entryPointName:", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin({ projects: { xxx: "." } });
+
     const entries = plugin.entryFor("xxx", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0].entryPointName).toEqual("xxx#MyLambda");
   });
@@ -471,7 +536,6 @@ describe("SAM config entryPointName:", () => {
 
 describe("When the template is in a subfolder", () => {
   test("it should match the happy snapshot", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -485,12 +549,14 @@ describe("When the template is in a subfolder", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template, "xxx/template.yaml");
+    const plugin = new SamPlugin({ projects: { xxx: "xxx" } });
+
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
     expect(entries).toMatchSnapshot();
   });
 
   test("it sets the entryPoint correctly", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -504,12 +570,14 @@ describe("When the template is in a subfolder", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template, "xxx/template.yaml");
+    const plugin = new SamPlugin({ projects: { xxx: "xxx" } });
+
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
     expect(entries.entryPoints["xxx#MyLambda"]).toEqual("./xxx/src/my-lambda/app");
   });
 
   test("it sets the launch config localRoot correctly", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -523,12 +591,14 @@ describe("When the template is in a subfolder", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template, "xxx/template.yaml");
+    const plugin = new SamPlugin({ projects: { xxx: "xxx" } });
+
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
     expect(entries.launchConfigs[0].localRoot).toEqual("${workspaceFolder}/xxx/.aws-sam/build/MyLambda");
   });
 
   test("it sets the SAM config builtRoot correctly", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -542,12 +612,14 @@ describe("When the template is in a subfolder", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template, "xxx/template.yaml");
+    const plugin = new SamPlugin({ projects: { xxx: "xxx" } });
+
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
     expect(entries.samConfigs[0].buildRoot).toEqual("xxx/.aws-sam/build");
   });
 
   test("it sets the SAM config outFile correctly", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -561,13 +633,15 @@ describe("When the template is in a subfolder", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
   `;
+    fsPrepCommon(template, "xxx/template.yaml");
+    const plugin = new SamPlugin({ projects: { xxx: "xxx" } });
+
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
     expect(entries.samConfigs[0].outFile).toEqual("./xxx/.aws-sam/build/MyLambda/app.js");
   });
 });
 
 test("It ignores non AWS::Serverless::Function resosurces", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -581,12 +655,14 @@ Resources:
   FakeResource:
     Type: AWS::FakeResource::NahNah
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin();
+
   const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
   expect(entries).toMatchSnapshot();
 });
 
 test("JS output files uses outFile parameter", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -600,13 +676,15 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin({ outFile: "index" });
+
   const entries = plugin.entryFor("default", "", "template.yaml", template, "index");
   expect(entries).toMatchSnapshot();
 });
 
 describe("Property paths are rewritten correctly", () => {
   test("BodyS3Location property for the AWS::ApiGateway::RestApi resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -622,6 +700,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         BodyS3Location: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.BodyS3Location).toEqual(
       "../../path/to/file"
@@ -629,7 +710,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("Code property for the AWS::Lambda::Function resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -645,12 +725,14 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         Code: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Code).toEqual("../../path/to/file");
   });
 
   test("DefinitionS3Location property for the AWS::AppSync::GraphQLSchema resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -666,6 +748,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         DefinitionS3Location: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionS3Location).toEqual(
       "../../path/to/file"
@@ -673,7 +758,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("RequestMappingTemplateS3Location property for the AWS::AppSync::Resolver resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -689,6 +773,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         RequestMappingTemplateS3Location: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(
       entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.RequestMappingTemplateS3Location
@@ -696,7 +783,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("ResponseMappingTemplateS3Location property for the AWS::AppSync::Resolver resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -712,6 +798,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         ResponseMappingTemplateS3Location: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(
       entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.ResponseMappingTemplateS3Location
@@ -719,7 +808,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("DefinitionUri property for the AWS::Serverless::Api resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -735,6 +823,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         DefinitionUri: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionUri).toEqual(
       "../../path/to/file"
@@ -742,7 +833,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("Location parameter for the AWS::Include transform", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -758,6 +848,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         Location: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Location).toEqual(
       "../../path/to/file"
@@ -765,7 +858,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("SourceBundle property for the AWS::ElasticBeanstalk::ApplicationVersion resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -781,6 +873,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         SourceBundle: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.SourceBundle).toEqual(
       "../../path/to/file"
@@ -788,7 +883,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("TemplateURL property for the AWS::CloudFormation::Stack resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -804,6 +898,9 @@ describe("Property paths are rewritten correctly", () => {
       Properties:
         TemplateURL: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.TemplateURL).toEqual(
       "../../path/to/file"
@@ -811,7 +908,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("Command.ScriptLocation property for the AWS::Glue::Job resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -828,6 +924,9 @@ describe("Property paths are rewritten correctly", () => {
         Command:
           ScriptLocation: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Command?.ScriptLocation).toEqual(
       "../../path/to/file"
@@ -835,7 +934,6 @@ describe("Property paths are rewritten correctly", () => {
   });
 
   test("DefinitionS3Location property for the AWS::StepFunctions::StateMachine resource", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -851,6 +949,9 @@ Resources:
     Properties:
       DefinitionS3Location: path/to/file
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionS3Location).toEqual(
       "../../path/to/file"
@@ -860,7 +961,6 @@ Resources:
 
 describe("Property paths are not re-written when they are objects", () => {
   test("BodyS3Location property for the AWS::ApiGateway::RestApi resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -877,6 +977,9 @@ describe("Property paths are not re-written when they are objects", () => {
         BodyS3Location:
           Bucket: bucketname
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.BodyS3Location).toEqual({
       Bucket: "bucketname",
@@ -884,7 +987,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("Code property for the AWS::Lambda::Function resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -901,6 +1003,9 @@ describe("Property paths are not re-written when they are objects", () => {
         Code:
           S3Bucket: bucketname
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Code).toEqual({
       S3Bucket: "bucketname",
@@ -908,7 +1013,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("DefinitionS3Location property for the AWS::AppSync::GraphQLSchema resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -924,6 +1028,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         DefinitionS3Location: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionS3Location).toEqual(
       "s3://path/to/file"
@@ -931,7 +1038,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("RequestMappingTemplateS3Location property for the AWS::AppSync::Resolver resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -947,6 +1053,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         RequestMappingTemplateS3Location: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(
       entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.RequestMappingTemplateS3Location
@@ -954,7 +1063,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("ResponseMappingTemplateS3Location property for the AWS::AppSync::Resolver resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -970,6 +1078,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         ResponseMappingTemplateS3Location: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(
       entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.ResponseMappingTemplateS3Location
@@ -978,7 +1089,6 @@ describe("Property paths are not re-written when they are objects", () => {
 
   // TODO
   test("DefinitionUri property for the AWS::Serverless::Api resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -994,6 +1104,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         DefinitionUri: path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionUri).toEqual(
       "../../path/to/file"
@@ -1001,7 +1114,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("Location parameter for the AWS::Include transform", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -1017,6 +1129,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         Location: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Location).toEqual(
       "s3://path/to/file"
@@ -1024,7 +1139,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("SourceBundle property for the AWS::ElasticBeanstalk::ApplicationVersion resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -1041,6 +1155,9 @@ describe("Property paths are not re-written when they are objects", () => {
         SourceBundle:
           S3Bucket: bucketname
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.SourceBundle).toEqual({
       S3Bucket: "bucketname",
@@ -1048,7 +1165,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("TemplateURL property for the AWS::CloudFormation::Stack resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -1064,6 +1180,9 @@ describe("Property paths are not re-written when they are objects", () => {
       Properties:
         TemplateURL: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.TemplateURL).toEqual(
       "s3://path/to/file"
@@ -1071,7 +1190,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("Command.ScriptLocation property for the AWS::Glue::Job resource", () => {
-    const plugin = new SamPlugin();
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
@@ -1088,6 +1206,9 @@ describe("Property paths are not re-written when they are objects", () => {
         Command:
           ScriptLocation: s3://path/to/file
   `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.Command?.ScriptLocation).toEqual(
       "s3://path/to/file"
@@ -1095,7 +1216,6 @@ describe("Property paths are not re-written when they are objects", () => {
   });
 
   test("DefinitionS3Location property for the AWS::StepFunctions::StateMachine resource", () => {
-    const plugin = new SamPlugin();
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -1112,6 +1232,9 @@ Resources:
       DefinitionS3Location:
         Bucket: bucketname
 `;
+    fsPrepCommon(template);
+    const plugin = new SamPlugin();
+
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
     expect(entries.samConfigs[0]?.templateYml?.Resources?.MyResource?.Properties?.DefinitionS3Location).toEqual({
       Bucket: "bucketname",
@@ -1120,7 +1243,6 @@ Resources:
 });
 
 test("can be set at the function", () => {
-  const plugin = new SamPlugin();
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
@@ -1132,5 +1254,8 @@ Resources:
       Handler: app.handler
       Runtime: nodejs14.x
 `;
+  fsPrepCommon(template);
+  const plugin = new SamPlugin();
+
   const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
 });

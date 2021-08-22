@@ -56,14 +56,14 @@ Resources:
 `;
 
 test("Happy path with default constructor works", () => {
-  const plugin = new SamPlugin();
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
   fs.__setMockDirs(["."]);
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
+
+  const plugin = new SamPlugin();
 
   const entryPoints = plugin.entry();
 
@@ -310,8 +310,6 @@ test.each([
   [vscodeLaunchJson1, vscodeLaunchJsonTest],
   [vscodeLaunchJson2, vscodeLaunchJsonTest],
 ])("Happy build launch.json with replace old content", (srcData, testData) => {
-  const plugin = new SamPlugin({ vscodeDebug: true });
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -319,6 +317,7 @@ test.each([
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate, ".vscode/launch.json": srcData });
 
+  const plugin = new SamPlugin({ vscodeDebug: true });
 
   const entryPoints = plugin.entry();
 
@@ -344,8 +343,6 @@ test.each([
 });
 
 test("Happy path with multiple projects works", () => {
-  const plugin = new SamPlugin({ projects: { a: "project-a", b: "project-b" } });
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -353,6 +350,7 @@ test("Happy path with multiple projects works", () => {
   // @ts-ignore
   fs.__setMockFiles({ "project-a/template.yaml": samTemplate, "project-b/template.yaml": samTemplate });
 
+  const plugin = new SamPlugin({ projects: { a: "project-a", b: "project-b" } });
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -375,8 +373,6 @@ test("Happy path with multiple projects works", () => {
 });
 
 test("Happy path with multiple projects and different template names works", () => {
-  const plugin = new SamPlugin({ projects: { a: "project-a/template-a.yaml", b: "project-b/template-b.yaml" } });
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -384,6 +380,7 @@ test("Happy path with multiple projects and different template names works", () 
   // @ts-ignore
   fs.__setMockFiles({ "project-a/template-a.yaml": samTemplate, "project-b/template-b.yaml": samTemplate });
 
+  const plugin = new SamPlugin({ projects: { a: "project-a/template-a.yaml", b: "project-b/template-b.yaml" } });
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -406,13 +403,13 @@ test("Happy path with multiple projects and different template names works", () 
 });
 
 test("Calling apply() before entry() throws an error", () => {
-  const plugin = new SamPlugin();
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
-  path.__clearMocks();
-
+  fs.__setMockDirs(["."]);
+  // @ts-ignore
+  fs.__setMockFiles({ "./template.yaml": samTemplate });
+  const plugin = new SamPlugin();
   let afterEmit: (_compilation: any) => void;
 
   plugin.apply({
@@ -430,8 +427,6 @@ test("Calling apply() before entry() throws an error", () => {
 });
 
 test("Happy path for filename() when the Lambda is found", () => {
-  const plugin = new SamPlugin();
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -439,14 +434,13 @@ test("Happy path for filename() when the Lambda is found", () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
+  const plugin = new SamPlugin();
   const entryPoints = plugin.entry();
 
   expect(plugin.filename({ chunk: { name: "MyLambda" } })).toEqual("./.aws-sam/build/MyLambda/app.js");
 });
 
 test("Fails when filename() is passed an invalid lambda name", () => {
-  const plugin = new SamPlugin();
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -454,6 +448,7 @@ test("Fails when filename() is passed an invalid lambda name", () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
+  const plugin = new SamPlugin();
   const entryPoints = plugin.entry();
 
   //console.log("XXX", plugin.filename({chunk: { name: "FakeLambda" }}));
@@ -463,8 +458,6 @@ test("Fails when filename() is passed an invalid lambda name", () => {
 });
 
 test("Fails when there is no template.yaml or template.yml and you provided a directory", () => {
-  const plugin = new SamPlugin();
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -472,13 +465,13 @@ test("Fails when there is no template.yaml or template.yml and you provided a di
   // // @ts-ignore
   // fs.__setMockFiles({ "./template.yaml": samTemplate });
 
-
-  expect(() => plugin.entry()).toThrowError("Could not find template.yaml or template.yml in .");
+  expect(() => {
+    const plugin = new SamPlugin();
+    plugin.entry();
+  }).toThrowError("Could not find template.yaml or template.yml in .");
 });
 
 test("Happy path with an output file specified", () => {
-  const plugin = new SamPlugin({ outFile: "index" });
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -486,6 +479,7 @@ test("Happy path with an output file specified", () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplate });
 
+  const plugin = new SamPlugin({ outFile: "index" });
   const entryPoints = plugin.entry();
 
   let afterEmit: (_compilation: any) => void;
@@ -508,8 +502,6 @@ test("Happy path with an output file specified", () => {
 });
 
 test("Happy exec make template with layers", async () => {
-  const plugin = new SamPlugin({ outFile: "index" });
-
   // @ts-ignore
   fs.__clearMocks();
   // @ts-ignore
@@ -517,6 +509,7 @@ test("Happy exec make template with layers", async () => {
   // @ts-ignore
   fs.__setMockFiles({ "./template.yaml": samTemplateWithLayer });
 
+  const plugin = new SamPlugin({ outFile: "index" });
   const entryPoints = plugin.entry();
 
   // let afterEmit: (_compilation: any) => void;
@@ -535,10 +528,13 @@ test("Happy exec make template with layers", async () => {
     },
   });
 
+  const originalLog = console.log;
+  console.log = jest.fn();
   const execMocked = child_process.exec as unknown as jest.Mock;
   execMocked.mockClear();
   // @ts-ignore
   await afterEmitPromise(null);
+  console.log = originalLog;
 
   expect(execMocked.mock.calls.length).toBe(2);
   expect(execMocked.mock.calls[0][0]).toMatch(

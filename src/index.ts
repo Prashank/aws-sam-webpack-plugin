@@ -5,7 +5,7 @@ import { schema } from "yaml-cfn";
 import yaml from "js-yaml";
 
 interface AwsSamProjectMap {
-  [pname: string]: string;
+  [pname: string]: string | { path: string; outFile: string };
 }
 
 interface AwsSamPluginOptions {
@@ -14,31 +14,43 @@ interface AwsSamPluginOptions {
   vscodeDebug: boolean;
 }
 
-interface IEntryPointMap {
+interface IWebpackEntryPointMap {
   [pname: string]: string;
 }
 
-interface SamEntry {
-  buildRoot: string;
-  entryPointName: string;
-  outFile: string;
+interface IResourceEntry {
   projectKey: string;
-  templateYml: any; // YAML content of the SAM template
-  templateName: string;
-}
-
-interface IEntryForResult {
-  entryPoints: IEntryPointMap;
-  launchConfigs: any[];
-  samConfigs: SamEntry[];
-}
-
-interface ILayerConfig {
-  templateName: string;
+  resourceType: "function" | "layer";
   resourceKey: string;
+  resourcePath: string; // relative path to resource CoreUri/ContentUri and so
+  buildMethod: "webpack" | "makefile";
   buildRoot: string;
-  contentDir: string;
-  buildMethod?: string;
+  // the entry point for webpack
+  entryPointName: string;
+  entryPointPath: string;
+  assetFilePath: string;
+}
+
+interface IProjectEntry {
+  // projectKey: string;
+  isLoaded?: boolean;
+  path: string; // path to project folder
+  buildRoot: string; // path to <any>/.aws-sam/buil
+  outFile: string; // name of bundle file of each entry
+  // Templates
+  templateFileName: string;
+  templateName: string;
+  templateYml?: any; // YAML content of the SAM template
+  resources: IResourceEntry[];
+}
+
+function buildProjectEntryPointMap(proj: IProjectEntry): Record<string, string> {
+  const resources = proj.resources.filter((res) => res.buildMethod === "webpack" && res.entryPointName);
+  const response: Record<string, string> = {};
+  resources.forEach((res) => {
+    response[res.entryPointName] = res.entryPointPath;
+  });
+  return response;
 }
 
 function rewriteAssetRelativePath(Properties: any, key: string, buildRoot: string) {
@@ -66,12 +78,12 @@ function buildVscodeLaunchObject(projectKey: string, resourceKey: string, buildR
     skipFiles: ["/var/runtime/**/*.js", "<node_internals>/**/*.js"],
   };
 }
+
 class AwsSamPlugin {
   private static defaultTemplates = ["template.yaml", "template.yml"];
-  private launchConfig: any;
   private options: AwsSamPluginOptions;
-  private samEntries: SamEntry[];
-  private layersConfigs: ILayerConfig[] = [];
+  // private layersConfigs: ILayerConfig[] = [];
+  private projectsMap: Record<string, IProjectEntry> = {};
 
   constructor(options?: Partial<AwsSamPluginOptions>) {
     this.options = {
@@ -80,16 +92,47 @@ class AwsSamPlugin {
       vscodeDebug: true,
       ...options,
     };
-    this.samEntries = [];
+    this.projectsMap = {};
+    for (const projectKey in this.options.projects) {
+      const projectDirtyOpts = this.options.projects[projectKey];
+      const projectOpts = typeof projectDirtyOpts === "string" ? { path: projectDirtyOpts } : projectDirtyOpts;
+
+      const outFile = "outFile" in projectOpts && projectOpts.outFile ? projectOpts.outFile : this.options.outFile;
+
+      const projectFolderOrTemplateName = projectOpts.path || ".";
+      let templateFileName = this.findTemplateName(projectFolderOrTemplateName);
+      if (templateFileName === null) {
+        throw new Error(
+          `Could not find ${AwsSamPlugin.defaultTemplates.join(" or ")} in ${projectFolderOrTemplateName}`
+        );
+      }
+      const projectRelPath = path.relative(".", path.dirname(templateFileName));
+      const projectPath = projectRelPath == "" || projectRelPath == "." ? "." : `./${projectRelPath}`;
+      const templateName = path.basename(templateFileName);
+      const buildRoot = (projectRelPath == "" || projectRelPath == "." ? "" : projectRelPath + "/") + ".aws-sam/build";
+
+      this.projectsMap[projectKey] = {
+        path: projectPath,
+        buildRoot,
+        outFile,
+        templateFileName: path.relative(".", templateFileName),
+        templateName,
+        resources: [],
+      };
+    }
   }
 
   // Returns the name of the SAM template file or null if it's not found
   private findTemplateName(prefix: string) {
-    if (fs.statSync(prefix).isFile()) {
-      return prefix;
+    try {
+      if (fs.statSync(prefix).isFile()) {
+        return prefix;
+      }
+    } catch (err) {
+      //
     }
     for (const f of AwsSamPlugin.defaultTemplates) {
-      const template = `${prefix}/${f}`;
+      const template = `${prefix || "."}/${f}`;
       if (fs.existsSync(template)) {
         return template;
       }
@@ -98,23 +141,21 @@ class AwsSamPlugin {
   }
 
   // Returns a webpack entry object based on the SAM template
-  public entryFor(
-    projectKey: string, // example: "default"
-    projectPath: string, // relative from source project path
-    projectTemplateName: string, // base name of template file name
-    projectTemplateContent: string, // content of SAM template
-    outFile: string // example app.js
-  ): IEntryForResult {
-    const entryPoints: IEntryPointMap = {};
-    const launchConfigs: any[] = [];
-    const samConfigs: SamEntry[] = [];
+  public initProject(projectKey: string): void {
+    const projectEntry = this.projectsMap[projectKey];
+    if (!projectEntry) {
+      throw new Error(`project '${projectKey}' not found`);
+    }
 
-    const buildRoot = `${projectPath ? projectPath + "/" : ""}.aws-sam/build`;
+    const { buildRoot, path: projectPath, templateName, templateFileName, outFile } = projectEntry;
+    const projectTemplateContent = fs.readFileSync(templateFileName).toString();
+    projectEntry.resources = [];
 
     const templateYml = yaml.load(projectTemplateContent, {
-      filename: projectTemplateName,
+      filename: templateName,
       schema,
     }) as any;
+    projectEntry.templateYml = templateYml;
 
     const defaultRuntime = templateYml.Globals?.Function?.Runtime ?? null;
     const defaultHandler = templateYml.Globals?.Function?.Handler ?? null;
@@ -160,7 +201,8 @@ class AwsSamPlugin {
         rewriteAssetRelativePath(properties, "DefinitionS3Location", buildRoot);
       }
       // Find all of the functions
-      if (resource.Type === "AWS::Serverless::Function") {
+      if (Type === "AWS::Serverless::Function") {
+        const properties = resource.Properties;
         if (!properties) {
           throw new Error(`${resourceKey} is missing Properties`);
         }
@@ -194,29 +236,28 @@ class AwsSamPlugin {
           throw new Error(`${resourceKey} is missing a CodeUri`);
         }
 
-        const basePathPrefix = projectPath === "" ? "." : `./${projectPath}`;
-        const basePath = `${basePathPrefix}/${codeUri}`;
-        const fileBase = `${basePath}/${handlerComponents[0]}`;
-
-        // Generate the launch config for the VS Code debugger
-        launchConfigs.push(buildVscodeLaunchObject(projectKey, resourceKey, buildRoot));
-
-        // Add the entry point for webpack
+        const basePathPrefix = ["", "."].includes(projectPath) ? "." : projectPath;
+        // TODO: Add determine nested stacks
         const entryPointName = projectKey === "default" ? resourceKey : `${projectKey}#${resourceKey}`;
-        entryPoints[entryPointName] = fileBase;
-        resource.Properties.CodeUri = resourceKey;
-        resource.Properties.Handler = `${outFile}.${handlerComponents[1]}`;
-        samConfigs.push({
-          buildRoot,
-          entryPointName,
-          outFile: `./${buildRoot}/${resourceKey}/${outFile}.js`,
+        const entryPointPath = `${basePathPrefix}/${codeUri}/${handlerComponents[0]}`;
+
+        properties.CodeUri = resourceKey;
+        properties.Handler = `${outFile}.${handlerComponents[1]}`;
+
+        projectEntry.resources.push({
           projectKey,
-          templateYml,
-          templateName: projectTemplateName,
+          resourceType: "function",
+          resourceKey,
+          resourcePath: `${basePathPrefix}/${codeUri}`,
+          buildRoot,
+          buildMethod: "webpack",
+          entryPointName,
+          entryPointPath,
+          assetFilePath: `./${buildRoot}/${resourceKey}/${outFile}.js`,
         });
       }
 
-      if (resource.Type === "AWS::Serverless::LayerVersion") {
+      if (Type === "AWS::Serverless::LayerVersion") {
         const properties = resource.Properties;
         if (!properties || typeof properties !== "object") {
           throw new Error(`${resourceKey} is missing Properties`);
@@ -228,23 +269,22 @@ class AwsSamPlugin {
           throw new Error(`${resourceKey} is missing a CodeUri`);
         }
 
-        const basePathPrefix = projectPath === "" ? "." : `./${projectPath}`;
+        const basePathPrefix = ["", "."].includes(projectPath) ? "" : `${projectPath}/`;
         const contentDir = `${basePathPrefix}/${contentUri}`;
 
         const buildMethod = resource.Metadata?.BuildMethod;
         if (buildMethod === "makefile") {
-          if (
-            !this.layersConfigs.find(
-              (e) =>
-                e.templateName === projectTemplateName && e.resourceKey === resourceKey && e.buildRoot === buildRoot
-            )
-          ) {
-            this.layersConfigs.push({
-              templateName: projectTemplateName,
+          if (!projectEntry.resources.find((e) => e.projectKey === projectKey && e.resourceKey === resourceKey)) {
+            projectEntry.resources.push({
+              projectKey,
+              resourceType: "layer",
               resourceKey,
+              resourcePath: `${basePathPrefix}/${contentDir}`,
               buildRoot,
-              contentDir,
               buildMethod,
+              entryPointName: "", // Layers does not shows to Webpack
+              entryPointPath: "",
+              assetFilePath: "",
             });
           }
         } else {
@@ -252,61 +292,77 @@ class AwsSamPlugin {
         }
       }
     }
-
-    return { entryPoints, launchConfigs, samConfigs };
+    projectEntry.isLoaded = true;
   }
 
-  public entry() {
-    // Reset the entry points and launch config
-    let allEntryPoints: IEntryPointMap = {};
-    this.launchConfig = {
-      version: "0.2.0",
-      configurations: [],
+  // Workaround for support old tests :))
+  public entryFor(
+    projectKey: string, // example: "default"
+    projectPath: string, // relative from source project path
+    _projectTemplateName: string, // base name of template file name
+    _projectTemplateContent: string, // content of SAM template
+    outFile: string // example app.js
+  ) {
+    if (!this.projectsMap[projectKey]) {
+      throw new Error(`Project '${projectKey}' not found`);
+    }
+    const proj = this.projectsMap[projectKey];
+    if (
+      path.relative(".", projectPath) !== path.relative(".", proj.path) &&
+      !(["", "."].includes(projectPath) && ["", "."].includes(proj.path))
+    ) {
+      throw new Error(`Project '${projectKey}' path diferents in setting(${proj.path}) and tests(${projectPath})`);
+    }
+    // this.projectsMap[projectKey] = {
+    //   ...(this.projectsMap[projectKey] || {}),
+    //   path: projectPath || ".",
+    //   outFile: outFile,
+    // };
+    this.initProject(projectKey);
+
+    const projResources = proj.resources.filter((res) => res.buildMethod === "webpack" && res.entryPointName);
+
+    const samConfigs = projResources.map((e) => ({
+      buildRoot: e.buildRoot,
+      entryPointName: e.entryPointName,
+      projectKey: e.projectKey,
+      templateName: proj.templateName,
+      templateYml: proj.templateYml,
+      outFile: e.assetFilePath,
+    }));
+    return {
+      entryPoints: buildProjectEntryPointMap(this.projectsMap[projectKey]),
+      launchConfigs: projResources.map((e) => buildVscodeLaunchObject(e.projectKey, e.resourceKey, e.buildRoot)),
+      samConfigs,
     };
-    this.samEntries = [];
+  }
 
-    // Loop through each of the "projects" from the options
-    for (const projectKey in this.options.projects) {
-      // The value will be the name of a folder or a template file
-      const projectFolderOrTemplateName = this.options.projects[projectKey];
-
-      // If the projectFolderOrTemplateName isn't a file then we should look for common template file names
-      const projectTemplateFileName = this.findTemplateName(projectFolderOrTemplateName);
-
-      // If we still cannot find a project template name then throw an error because something is wrong
-      if (projectTemplateFileName === null) {
-        throw new Error(
-          `Could not find ${AwsSamPlugin.defaultTemplates.join(" or ")} in ${projectFolderOrTemplateName}`
-        );
+  public entry(): IWebpackEntryPointMap {
+    // Loop through each of the "projects"
+    for (const projectKey in this.projectsMap) {
+      const projectEntry = this.projectsMap[projectKey];
+      if (!projectEntry) {
+        throw new Error(`project '${projectKey}' not found`);
       }
-
-      const projectTemplateContent = fs.readFileSync(projectTemplateFileName).toString();
-
-      // Retrieve the entry points, VS Code debugger launch configs and SAM config for this entry
-      const { entryPoints, launchConfigs, samConfigs } = this.entryFor(
-        projectKey, // projectKey
-        path.relative(".", path.dirname(projectTemplateFileName)), // projectPath
-        path.basename(projectTemplateFileName), // projectTemplateName
-        projectTemplateContent, // projecTemplate
-        this.options.outFile // outFile
-      );
-
-      // Addd them to the entry pointsm launch configs and SAM confis we've already discovered.
-      Object.assign(allEntryPoints, entryPoints);
-      this.launchConfig.configurations.push(...launchConfigs);
-      this.samEntries.push(...samConfigs);
+      this.initProject(projectKey);
     }
 
     // Once we're done return the entry points
-    return allEntryPoints;
+    const response: IWebpackEntryPointMap = {};
+    for (const projectKey in this.projectsMap) {
+      const proj = this.projectsMap[projectKey];
+      Object.assign(response, buildProjectEntryPointMap(proj));
+    }
+    return response;
   }
 
   public filename(chunkData: any) {
-    const samConfig = this.samEntries.find((c) => c.entryPointName === chunkData.chunk.name);
-    if (!samConfig) {
-      throw new Error(`Unable to find filename for ${chunkData.chunk.name}`);
+    for (const projectKey in this.projectsMap) {
+      const projectEntry = this.projectsMap[projectKey];
+      const resource = projectEntry.resources.find((e) => e.entryPointName === chunkData.chunk.name);
+      if (resource) return resource.assetFilePath;
     }
-    return samConfig.outFile;
+    throw new Error(`Unable to find filename for ${chunkData.chunk.name}`);
   }
 
   public apply(compiler: any) {
@@ -318,19 +374,28 @@ class AwsSamPlugin {
     );
 
     compiler.hooks.afterEmit.tap("SamPlugin", (_compilation: any) => {
+      for (const projectsKey in this.projectsMap) {
+        if (!this.projectsMap[projectsKey].isLoaded) {
+          throw new Error("It looks like AwsSamPlugin.entry() was not called");
+        }
+      }
       this.writeTemplateFiles();
       this.writeVscodeLaunch();
     });
   }
 
   private async buildLayers(): Promise<void> {
-    if (!(this.samEntries && this.launchConfig)) {
-      throw new Error("It looks like AwsSamPlugin.entry() was not called");
-    }
-    for (const layerConfig of this.layersConfigs) {
-      const { templateName, resourceKey, buildRoot, contentDir, buildMethod } = layerConfig;
+    const layers: IResourceEntry[] = [];
+    Object.keys(this.projectsMap).forEach((projectKey) => {
+      const proj = this.projectsMap[projectKey];
+      const projLeyers = proj.resources.filter((e) => e.resourceType === "layer");
+      layers.push(...projLeyers);
+    });
+
+    for (const layerConfig of layers) {
+      const { projectKey, resourceKey, buildRoot, resourcePath, buildMethod } = layerConfig;
       if (buildMethod === "makefile") {
-        console.log("Start building layer %s#%s ... ", templateName, resourceKey);
+        console.log("Start building layer %s#%s ... ", projectKey, resourceKey);
         const artifactsDir = `${buildRoot}/${resourceKey}`;
         try {
           fs.mkdirSync(buildRoot);
@@ -345,7 +410,7 @@ class AwsSamPlugin {
         const cmdLine = [
           //
           `make`,
-          `-C "${contentDir}"`,
+          `-C "${resourcePath}"`,
           `ARTIFACTS_DIR="${path.resolve(artifactsDir)}"`,
           `build-${resourceKey}`,
         ].join(" ");
@@ -368,33 +433,39 @@ class AwsSamPlugin {
   }
 
   private writeTemplateFiles() {
-    if (!(this.samEntries && this.launchConfig)) {
-      throw new Error("It looks like AwsSamPlugin.entry() was not called");
-    }
-    const yamlUnique = this.samEntries.reduce((a, e) => {
-      const { buildRoot, templateYml } = e;
-      a[buildRoot] = templateYml;
-      return a;
-    }, {} as Record<string, any>);
-    for (const buildRoot in yamlUnique) {
-      const samConfig = yamlUnique[buildRoot];
-      fs.writeFileSync(`${buildRoot}/template.yaml`, yaml.dump(samConfig, { indent: 2, quotingType: '"', schema }));
+    for (const projectKey in this.projectsMap) {
+      const proj = this.projectsMap[projectKey];
+      const { buildRoot, templateYml } = proj;
+      if (!yaml) {
+        throw new Error(`Project template ${proj.path}#${proj.templateName} not loaded!`);
+      }
+      fs.writeFileSync(`${buildRoot}/template.yaml`, yaml.dump(templateYml, { indent: 2, quotingType: '"', schema }));
     }
   }
 
   private writeVscodeLaunch(): void {
-    if (!(this.samEntries && this.launchConfig)) {
-      throw new Error("It looks like AwsSamPlugin.entry() was not called");
-    }
     if (this.options.vscodeDebug !== true) {
       return;
     }
     if (!fs.existsSync(".vscode")) {
       fs.mkdirSync(".vscode");
     }
+    const launchsArray: any[] = [];
+    for (const projectKey in this.projectsMap) {
+      const proj = this.projectsMap[projectKey];
+      const { buildRoot, resources } = proj;
+      const projLaunchs = resources
+        .filter((e) => e.resourceType === "function" && e.buildMethod === "webpack")
+        .map((res) => buildVscodeLaunchObject(res.projectKey, res.resourceKey, res.buildRoot));
+      launchsArray.push(...projLaunchs);
+    }
+    const launchConfig = {
+      version: "0.2.0",
+      configurations: launchsArray,
+    };
     const launchPath = ".vscode/launch.json";
 
-    const launchContent = JSON.stringify(this.launchConfig, null, 2)
+    const launchContent = JSON.stringify(launchConfig, null, 2)
       .replace(/^(.*"configurations": \[\s*)$/m, "$1\n    // BEGIN AwsSamPlugin")
       .replace(/(\n  \s*\][\r\n]+\})$/m, "\n    // END AwsSamPlugin$1");
     const regexBlock = /\s+\/\/ BEGIN AwsSamPlugin(\r|\n|.)+\/\/ END AwsSamPlugin/m;
