@@ -6,11 +6,9 @@ describe("Function Runtime", () => {
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs10.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -27,11 +25,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs12.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -48,11 +44,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs14.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -69,7 +63,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -87,7 +80,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -105,7 +97,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -123,7 +114,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -141,11 +131,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs8.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -163,7 +151,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -182,11 +169,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs8.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -206,11 +191,9 @@ describe("Function Handler", () => {
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Handler: app.handler
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -227,7 +210,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -245,11 +227,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Handler: app.globalHandler
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -267,7 +247,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -287,11 +266,9 @@ describe("Function CodeUri", () => {
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     CodeUri: src/my-lambda
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -308,7 +285,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -326,11 +302,9 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     CodeUri: src/my-lambda
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -348,7 +322,6 @@ Resources:
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -367,7 +340,6 @@ test("Fails if Properties is missing", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -382,7 +354,6 @@ test("Fails if Hanlde doesn't include a '.'", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -400,7 +371,6 @@ test("Allows Inline code with warning", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -425,11 +395,9 @@ describe("Launch config name", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -438,7 +406,6 @@ describe("Launch config name", () => {
         Handler: app.handler
   `;
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
-
     expect(entries.launchConfigs[0].name).toEqual("MyLambda");
   });
 
@@ -447,11 +414,9 @@ describe("Launch config name", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -460,7 +425,6 @@ describe("Launch config name", () => {
         Handler: app.handler
   `;
     const entries = plugin.entryFor("xxx", "", "template.yaml", template, "app");
-
     expect(entries.launchConfigs[0].name).toEqual("xxx:MyLambda");
   });
 });
@@ -471,11 +435,9 @@ describe("SAM config entryPointName:", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -484,7 +446,6 @@ describe("SAM config entryPointName:", () => {
         Handler: app.handler
   `;
     const entries = plugin.entryFor("default", "", "template.yaml", template, "app");
-
     expect(entries.samConfigs[0].entryPointName).toEqual("MyLambda");
   });
 
@@ -493,11 +454,9 @@ describe("SAM config entryPointName:", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -506,7 +465,6 @@ describe("SAM config entryPointName:", () => {
         Handler: app.handler
   `;
     const entries = plugin.entryFor("xxx", "", "template.yaml", template, "app");
-
     expect(entries.samConfigs[0].entryPointName).toEqual("xxx#MyLambda");
   });
 });
@@ -517,11 +475,9 @@ describe("When the template is in a subfolder", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -530,7 +486,6 @@ describe("When the template is in a subfolder", () => {
         Handler: app.handler
   `;
     const entries = plugin.entryFor("xxx", "xxx", "template.yaml", template, "app");
-
     expect(entries).toMatchSnapshot();
   });
 
@@ -539,11 +494,9 @@ describe("When the template is in a subfolder", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -560,11 +513,9 @@ describe("When the template is in a subfolder", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -581,11 +532,9 @@ describe("When the template is in a subfolder", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -602,11 +551,9 @@ describe("When the template is in a subfolder", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-  
   Globals:
     Function:
       Runtime: nodejs14.x
-  
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -624,7 +571,6 @@ test("It ignores non AWS::Serverless::Function resosurces", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -632,7 +578,6 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
       Runtime: nodejs14.x
-
   FakeResource:
     Type: AWS::FakeResource::NahNah
 `;
@@ -645,11 +590,9 @@ test("JS output files uses outFile parameter", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs14.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -667,7 +610,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -675,7 +617,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::ApiGateway::RestApi
       Properties:
@@ -692,7 +633,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -700,7 +640,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Lambda::Function
       Properties:
@@ -715,7 +654,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -723,7 +661,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::GraphQLSchema
       Properties:
@@ -740,7 +677,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -748,7 +684,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::Resolver
       Properties:
@@ -765,7 +700,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -773,7 +707,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::Resolver
       Properties:
@@ -790,7 +723,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -798,7 +730,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Serverless::Api
       Properties:
@@ -815,7 +746,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -823,7 +753,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Include
       Properties:
@@ -840,7 +769,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -848,7 +776,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::ElasticBeanstalk::ApplicationVersion
       Properties:
@@ -865,7 +792,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -873,7 +799,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::CloudFormation::Stack
       Properties:
@@ -890,7 +815,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -898,7 +822,6 @@ describe("Property paths are rewritten correctly", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Glue::Job
       Properties:
@@ -916,7 +839,6 @@ describe("Property paths are rewritten correctly", () => {
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -924,7 +846,6 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
       Runtime: nodejs14.x
-
   MyResource:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -943,7 +864,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -951,7 +871,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::ApiGateway::RestApi
       Properties:
@@ -969,7 +888,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -977,7 +895,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Lambda::Function
       Properties:
@@ -995,7 +912,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1003,7 +919,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::GraphQLSchema
       Properties:
@@ -1020,7 +935,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1028,7 +942,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::Resolver
       Properties:
@@ -1045,7 +958,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1053,7 +965,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::AppSync::Resolver
       Properties:
@@ -1071,7 +982,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1079,7 +989,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Serverless::Api
       Properties:
@@ -1096,7 +1005,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1104,7 +1012,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Include
       Properties:
@@ -1121,7 +1028,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1129,7 +1035,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::ElasticBeanstalk::ApplicationVersion
       Properties:
@@ -1147,7 +1052,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1155,7 +1059,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::CloudFormation::Stack
       Properties:
@@ -1172,7 +1075,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
   AWSTemplateFormatVersion: "2010-09-09"
   Transform: AWS::Serverless-2016-10-31
-
   Resources:
     MyLambda:
       Type: AWS::Serverless::Function
@@ -1180,7 +1082,6 @@ describe("Property paths are not re-written when they are objects", () => {
         CodeUri: src/my-lambda
         Handler: app.handler
         Runtime: nodejs14.x
-
     MyResource:
       Type: AWS::Glue::Job
       Properties:
@@ -1198,7 +1099,6 @@ describe("Property paths are not re-written when they are objects", () => {
     const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -1206,7 +1106,6 @@ Resources:
       CodeUri: src/my-lambda
       Handler: app.handler
       Runtime: nodejs14.x
-
   MyResource:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -1225,7 +1124,6 @@ test("can be set at the function", () => {
   const template = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function

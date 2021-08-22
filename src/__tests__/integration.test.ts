@@ -10,11 +10,9 @@ jest.mock("path");
 const samTemplate = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs10.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -25,11 +23,9 @@ Resources:
 const samTemplateWithLayer = `
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-
 Globals:
   Function:
     Runtime: nodejs10.x
-
 Resources:
   MyLambda:
     Type: AWS::Serverless::Function
@@ -58,7 +54,6 @@ Resources:
       CompatibleRuntimes:
         - nodejs14.x
       RetentionPolicy: Retain
-
 `;
 
 test("Happy path with default constructor works", () => {
